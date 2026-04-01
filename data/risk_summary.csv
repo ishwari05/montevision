@@ -1,0 +1,10 @@
+Metric,Value
+Initial Investment,"$100,000.00"
+Median Final Value,"$194,799.74"
+Worst Case (5%),"$96,414.01"
+Best Case (95%),"$369,618.67"
+VaR (95%),"$3,585.99"
+CVaR (95%),"$19,373.67"
+Success Rate,100.0%
+Avg Max Drawdown,-29.75%
+Worst Drawdown,-69.89%
