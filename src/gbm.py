@@ -19,10 +19,14 @@ def generate_correlated_randoms(cov_matrix: np.ndarray, days: int, n_simulations
     try:
         L = np.linalg.cholesky(cov_matrix)
     except np.linalg.LinAlgError:
-        logger.warning("Covariance matrix not positive definite. Injecting epsilon diagonal stabilizer.")
-        epsilon = 1e-8
-        cov_matrix_stable = cov_matrix + epsilon * np.eye(n_assets)
-        L = np.linalg.cholesky(cov_matrix_stable)
+        eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+        if np.min(eigenvalues) >= -1e-8:
+            L = eigenvectors @ np.diag(np.sqrt(np.maximum(eigenvalues, 0.0)))
+        else:
+            logger.warning("Covariance matrix is not positive semidefinite. Injecting epsilon diagonal stabilizer.")
+            epsilon = 1e-8
+            cov_matrix_stable = cov_matrix + epsilon * np.eye(n_assets)
+            L = np.linalg.cholesky(cov_matrix_stable)
         
     Z = np.random.standard_normal((days, n_assets, n_simulations))
     correlated_Z = np.einsum('ij, djs -> dis', L, Z)

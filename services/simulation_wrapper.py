@@ -11,7 +11,7 @@ from typing import Dict, Any, List
 from src.data_loader import fetch_multi_asset_data, compute_statistics
 from src.gbm import simulate_portfolio_paths
 from src.portfolio import compute_portfolio_value
-from src.risk_metrics import compute_var, compute_cvar
+from src.risk_metrics import compute_var, compute_cvar, compute_drawdowns, compute_sharpe_ratio
 from services.currency import get_usd_inr_rate
 
 # --- Internal Institutional Defaults (Previously in config.py) ---
@@ -107,6 +107,8 @@ def run_production_simulation(
     median_final = np.median(final_values)
     var_95 = compute_var(final_values, initial_investment, 0.95)
     cvar_95 = compute_cvar(final_values, initial_investment, 0.95)
+    _, worst_drawdown = compute_drawdowns(portfolio_paths)
+    sharpe_ratio = compute_sharpe_ratio(portfolio_paths)
     success_rate = (final_values > 0).sum() / n_sims * 100
     
     return {
@@ -118,6 +120,8 @@ def run_production_simulation(
             "median_final": median_final,
             "var_95": var_95,
             "cvar_95": cvar_95,
+            "sharpe_ratio": sharpe_ratio,
+            "max_drawdown": abs(worst_drawdown),
             "success_rate": success_rate,
         },
         "statistics": {

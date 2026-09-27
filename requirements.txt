@@ -4,3 +4,4 @@ pandas
 streamlit
 plotly
 scipy
+pytest>=7.0.0

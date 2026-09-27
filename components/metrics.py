@@ -14,9 +14,9 @@ def render_metric_card(label, value, help_text=None):
     """, unsafe_allow_html=True)
 
 def display_summary_metrics(results: dict, currency: str = "USD", multiplier: float = 1.0):
-    """Organizes metrics into a responsive 4-column grid using glass cards."""
+    """Organizes metrics into a responsive 6-column grid using glass cards."""
     from services.currency import format_currency
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
     
     # Extract metrics sub-dict for convenience
     m = results['metrics']
@@ -32,12 +32,16 @@ def display_summary_metrics(results: dict, currency: str = "USD", multiplier: fl
             f"{m['success_rate']:.1f}%"
         )
     with col3:
+        render_metric_card("Sharpe Ratio", f"{m['sharpe_ratio']:.2f}")
+    with col4:
         render_metric_card(
             "Value at Risk (95%)", 
             format_currency(m['var_95'] * multiplier, currency)
         )
-    with col4:
+    with col5:
         render_metric_card(
             "Tail Risk (CVaR)", 
             format_currency(m['cvar_95'] * multiplier, currency)
         )
+    with col6:
+        render_metric_card("Maximum Drawdown", f"{m['max_drawdown']:.1%}")

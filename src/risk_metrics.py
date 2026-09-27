@@ -38,6 +38,24 @@ def compute_cvar(final_values: np.ndarray, initial_investment: float, confidence
     cvar = initial_investment - np.mean(worst_cases)
     return max(0.0, cvar)
 
+def compute_sharpe_ratio(portfolio_paths: np.ndarray, risk_free_rate: float = 0.0, periods_per_year: int = 252) -> float:
+    """Computes the annualized Sharpe ratio from all simulated portfolio returns."""
+    previous_values = portfolio_paths[:-1, :]
+    current_values = portfolio_paths[1:, :]
+    period_returns = np.divide(
+        current_values,
+        previous_values,
+        out=np.ones_like(current_values, dtype=float),
+        where=previous_values != 0,
+    ) - 1.0
+    excess_returns = period_returns - risk_free_rate / periods_per_year
+    return_std = np.std(excess_returns)
+
+    if return_std == 0.0:
+        return 0.0
+
+    return float(np.mean(excess_returns) / return_std * np.sqrt(periods_per_year))
+
 def compute_drawdowns(portfolio_paths: np.ndarray) -> tuple[float, float]:
     """
     Computes aggregate drawdown metrics.
@@ -95,6 +113,7 @@ def generate_summary_table(portfolio_paths: np.ndarray, initial_investment: floa
     percentiles = compute_percentiles(portfolio_paths)
     var = compute_var(final_values, initial_investment, confidence_level)
     cvar = compute_cvar(final_values, initial_investment, confidence_level)
+    sharpe_ratio = compute_sharpe_ratio(portfolio_paths)
     avg_dd, worst_dd = compute_drawdowns(portfolio_paths)
     
     if monthly_withdrawal > 0:
@@ -108,6 +127,7 @@ def generate_summary_table(portfolio_paths: np.ndarray, initial_investment: floa
             "Median Final Value",
             "Worst Case (5%)",
             "Best Case (95%)",
+            "Sharpe Ratio",
             f"VaR ({int(confidence_level*100)}%)",
             f"CVaR ({int(confidence_level*100)}%)",
             "Success Rate",
@@ -119,6 +139,7 @@ def generate_summary_table(portfolio_paths: np.ndarray, initial_investment: floa
             f"${percentiles[50]:,.2f}",
             f"${percentiles[5]:,.2f}",
             f"${percentiles[95]:,.2f}",
+            f"{sharpe_ratio:.2f}",
             f"${var:,.2f}",
             f"${cvar:,.2f}",
             f"{success_rate:.1f}%",
